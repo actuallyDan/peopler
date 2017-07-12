@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Human from './human.js';
+import Chart from './Chart.js';
 
 let advance;
 
@@ -10,7 +11,8 @@ class App extends Component {
     this.state = {
       advance: false,
       people : [],
-      date: 0
+      date: 0,
+      data : [[0, new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()).toJSON().substring(0,10)]]
     }
   }
   addPerson(){
@@ -24,6 +26,7 @@ class App extends Component {
   advance(){
     if(this.state.advance){
       let peopleList;
+      let data = this.state.data;
       let res;
       advance = setTimeout(()=>{
         peopleList = this.state.people;
@@ -32,19 +35,31 @@ class App extends Component {
         } 
         peopleList.map((person)=>{
           res = person.advance1Month();
-          if(res === 0){
-           let deadIndex = peopleList.findIndex((dead)=>{
-              return dead.id === person.id
-            });
-           peopleList.splice(deadIndex, 1);
+
+          switch(res){
+            case 0:
+            /* Person has died remove from list */
+            let deadIndex = peopleList.findIndex((dead)=>{return dead.id === person.id });
+            peopleList.splice(deadIndex, 1);
+            break;
+            case 2:
+            /* Person had a bab, add to list */
+            peopleList.push(person.children[person.children.length - 1])
+            break;
+            default:
+            break
           }
         });
+
+        data.push([peopleList.length, new Date(new Date().getFullYear(), new Date().getMonth() + this.state.date, new Date().getDate()).toJSON().substring(0,10)])
+
         this.setState({
           people : peopleList,
-          date : this.state.date + 1
+          date : this.state.date + 1,
+          data : data
         }, this.advance());
 
-      }, 100)
+      }, 10)
     }
   }
   toggleAdvance(){
@@ -61,7 +76,8 @@ class App extends Component {
   reset(){
     this.setState({
       date : 0,
-      people : []
+      people : [],
+      data : [["Population", "Time"],[0, new Date(new Date().getFullYear(), new Date().getMonth() + 0, new Date().getDate()).toJSON().substring(0, 10)]]
     })
   }
   render() {
